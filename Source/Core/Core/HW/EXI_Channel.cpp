@@ -136,11 +136,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 					}
 				}
 
-				m_Control.TSTART = 0;
-
-				// Check if device needs specific timing, otherwise just complete transfer immediately
-				if (!pDevice->UseDelayedTransferCompletion())
-					SendTransferComplete();
+				SendTransferComplete();
 			}
 		})
 	);
@@ -153,8 +149,12 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void CEXIChannel::SendTransferComplete()
 {
+	// Transfer complete interrupt
 	m_Status.TCINT = 1;
 	ExpansionInterface::UpdateInterrupts();
+	
+	// TSTART must be set to 0 after TCINT
+	m_Control.TSTART = 0;
 }
 
 void CEXIChannel::RemoveDevices()

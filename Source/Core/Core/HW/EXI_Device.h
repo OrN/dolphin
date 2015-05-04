@@ -39,8 +39,6 @@ public:
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
 	virtual void DMARead (u32 _uAddr, u32 _uSize);
 
-	virtual bool UseDelayedTransferCompletion() const { return false; }
-
 	virtual bool IsPresent() const { return false; }
 	virtual void SetCS(int) {}
 	virtual void DoState(PointerWrap&) {}
@@ -50,7 +48,7 @@ public:
 	// Is generating interrupt ?
 	virtual bool IsInterruptSet() {return false;}
 	virtual ~IEXIDevice() {}
-
+	
 	// for savestates. storing it here seemed cleaner than requiring each implementation to report its type.
 	// I know this class is set up like an interface, but no code requires it to be strictly such.
 	TEXIDevices m_deviceType;

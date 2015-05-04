@@ -30,9 +30,6 @@
 #define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
 
-static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
-static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
-
 // Takes care of the nasty recovery of the 'this' pointer from card_index,
 // stored in the userdata parameter of the CoreTiming event.
 void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata, std::function<void(CEXIMemoryCard*)> callback)
@@ -59,14 +56,6 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 	});
 }
 
-void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
-{
-	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
-	{
-		instance->TransferComplete();
-	});
-}
-
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 {
@@ -75,8 +64,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 		const char *done;
 		const char *transfer_complete;
 	} const event_names[] = {
-		{ "memcardDoneA", "memcardTransferCompleteA" },
-		{ "memcardDoneB", "memcardTransferCompleteB" },
+		{ "memcardDoneA"},
+		{ "memcardDoneB"},
 	};
 
 	if ((size_t)index >= ArraySize(event_names))
@@ -87,8 +76,6 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// until emu shutdown, but I guess it's inconsequential
 	et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done,
 		CmdDoneCallback);
-	et_transfer_complete = CoreTiming::RegisterEvent(
-		event_names[index].transfer_complete, TransferCompleteCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -243,12 +230,6 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 CEXIMemoryCard::~CEXIMemoryCard()
 {
 	CoreTiming::RemoveEvent(et_cmd_done);
-	CoreTiming::RemoveEvent(et_transfer_complete);
-}
-
-bool CEXIMemoryCard::UseDelayedTransferCompletion() const
-{
-	return true;
 }
 
 bool CEXIMemoryCard::IsPresent() const
@@ -263,12 +244,6 @@ void CEXIMemoryCard::CmdDone()
 
 	m_bInterruptSet = 1;
 	ExpansionInterface::UpdateInterrupts();
-}
-
-void CEXIMemoryCard::TransferComplete()
-{
-	// Transfer complete, send interrupt
-	ExpansionInterface::GetChannel(card_index)->SendTransferComplete();
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
@@ -537,11 +512,6 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 		DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x",
 			address / BLOCK_SIZE);
 	}
-
-	// Schedule transfer complete later based on read speed
-	CoreTiming::ScheduleEvent(
-		_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-		et_transfer_complete, (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -555,9 +525,4 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 		DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x",
 			address / BLOCK_SIZE);
 	}
-
-	// Schedule transfer complete later based on write speed
-	CoreTiming::ScheduleEvent(
-		_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-		et_transfer_complete, (u64)card_index);
 }
