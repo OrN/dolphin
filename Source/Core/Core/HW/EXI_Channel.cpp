@@ -112,7 +112,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				m_Status.ROMDIS = newStatus.ROMDIS;
 
 			// Only do CS if status has changed
-			if(m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
+			//if(m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
 			{
 				// Deselect old device
 				IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
@@ -178,9 +178,6 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 					}
 				}
-
-				// Set TCINT 0
-				m_Status.TCINT = 0;
 
 				// Calculate transfer complete delay time
 				// dataLength is in bytes
