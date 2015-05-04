@@ -173,7 +173,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
-				CoreTiming::ForceExceptionCheck(0);
+				CoreTiming::ForceExceptionCheck(delayTime + 1);
 				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
 						dataLength, delayTime);
 			}
