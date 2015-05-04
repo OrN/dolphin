@@ -268,7 +268,7 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				//???
 
-				CmdDoneLater(5000);
+				CmdDone();
 			}
 			break;
 
@@ -296,7 +296,7 @@ void CEXIMemoryCard::SetCS(int cs)
 					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 				}
 
-				CmdDoneLater(5000);
+				CmdDone();
 			}
 			break;
 		}
