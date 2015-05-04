@@ -55,7 +55,7 @@ u32 CEXIChannel::getClockRate()
 	// 011 - 8MHz
 	// 100 - 16MHz
 	// 101 - 32MHz
-	return (1 << m_Status.CLK * 1000000);
+	return (1 << m_Status.CLK) * 1000000;
 }
 
 void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -162,11 +162,11 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// dataLength is in bytes
 				// We delay the time by how long it would have taken to do this
 				// operation at the clockrate specified
-				u32 delayTime = getClockRate() * dataLength * 8UL / SystemTimers::GetTicksPerSecond();
+				u32 delayTime = dataLength * 8UL * getClockRate() / SystemTimers::GetTicksPerSecond();
 
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
-				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL clock:%uHz, data_length:%u, delay:%uns", m_ChannelId, getClockRate(),
+				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
 						dataLength, delayTime);
 			}
 		})
