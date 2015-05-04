@@ -166,7 +166,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
-				DEBUG_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL delay:%uns", m_ChannelId, delayTime);
+				INFO_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL delay:%uns", m_ChannelId, delayTime);
 			}
 		})
 	);
