@@ -34,8 +34,14 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 	if (m_ChannelId == 1)
 		m_Status.CHIP_SELECT = 1;
 
-	// TODO event names based on channel #
-	et_transfer_complete = CoreTiming::RegisterEvent("EXIChannel_TransferComplete", TransferCompleteCallback);
+	const char* transferComplete_name[] =
+	{
+		"EXIChannel0_TransferComplete",
+		"EXIChannel1_TransferComplete",
+		"EXIChannel2_TransferComplete"
+	};
+
+	et_transfer_complete = CoreTiming::RegisterEvent(transferComplete_name[m_ChannelId], TransferCompleteCallback);
 
 	for (auto& device : m_pDevices)
 		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));

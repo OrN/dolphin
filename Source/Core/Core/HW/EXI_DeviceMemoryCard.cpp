@@ -59,21 +59,19 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 {
-	struct
+	const char* done_name[] =
 	{
-		const char *done;
-	} const event_names[] = {
-		{ "memcardDoneA"},
-		{ "memcardDoneB"},
+		"memcardDoneA",
+		"memcardDoneB"
 	};
 
-	if ((size_t)index >= ArraySize(event_names))
+	if ((size_t)index >= ArraySize(done_name))
 	{
 		PanicAlertT("Trying to create invalid memory card index.");
 	}
 	// we're potentially leaking events here, since there's no RemoveEvent
 	// until emu shutdown, but I guess it's inconsequential
-	et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done,
+	et_cmd_done = CoreTiming::RegisterEvent(done_name[index],
 		CmdDoneCallback);
 
 	interruptSwitch = 0;
