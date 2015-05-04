@@ -125,9 +125,11 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
 				if(pDevice != nullptr)
 					pDevice->SetCS(1);
+			}
 
-				ExpansionInterface::UpdateInterrupts();
-				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE", m_ChannelId);
+			// Is this needed here?
+			//ExpansionInterface::UpdateInterrupts();
+			WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE", m_ChannelId);
 		})
 	);
 
