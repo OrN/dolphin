@@ -43,6 +43,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 
 CEXIChannel::~CEXIChannel()
 {
+	CoreTiming::RemoveEvent(et_transfer_complete);
 	RemoveDevices();
 }
 
@@ -190,6 +191,7 @@ void CEXIChannel::TransferComplete()
 
 	// TSTART must be set to 0 when done
 	m_Control.TSTART = 0;
+	WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_TRANSFERCOMPLETE", m_ChannelId);
 }
 
 void CEXIChannel::TransferCompleteCallback(u64 userdata, int cyclesLate)
