@@ -173,7 +173,6 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
-				CoreTiming::ForceExceptionCheck(delayTime);
 				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
 						dataLength, delayTime);
 			}
@@ -194,6 +193,7 @@ void CEXIChannel::TransferComplete()
 		// Transfer complete interrupt
 		m_Status.TCINT = 1;
 		ExpansionInterface::UpdateInterrupts();
+		CoreTiming::ForceExceptionCheck(0);
 	}
 
 	// TSTART must be set to 0 when done
