@@ -173,6 +173,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
+				CoreTiming::ForceExceptionCheck(delayTime);
 				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
 						dataLength, delayTime);
 			}
@@ -203,7 +204,9 @@ void CEXIChannel::TransferComplete()
 void CEXIChannel::TransferCompleteCallback(u64 userdata, int cyclesLate)
 {
 	// userdata contains the EXI channel number
-	CEXIChannel* channel = ExpansionInterface::GetChannel((u32)userdata);
+	u32 channelIndex = (u32)userdata;
+
+	CEXIChannel* channel = ExpansionInterface::GetChannel(channelIndex);
 	channel->TransferComplete();
 }
 
