@@ -163,8 +163,10 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// We delay the time by how long it would have taken to do this
 				// operation at the clockrate specified
 				u32 delayTime = getClockRate() * dataLength * 8UL / SystemTimers::GetTicksPerSecond();
+
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
+				DEBUG_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL delay:%uns", m_ChannelId, delayTime);
 			}
 		})
 	);
@@ -177,11 +179,15 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void CEXIChannel::TransferComplete()
 {
-	// Transfer complete interrupt
-	m_Status.TCINT = 1;
-	ExpansionInterface::UpdateInterrupts();
+	// Only do transfer complete interrupt if it was DMA
+	if(m_Control.DMA)
+	{
+		// Transfer complete interrupt
+		m_Status.TCINT = 1;
+		ExpansionInterface::UpdateInterrupts();
+	}
 
-	// TSTART must be set to 0 after TCINT
+	// TSTART must be set to 0 when done
 	m_Control.TSTART = 0;
 }
 
