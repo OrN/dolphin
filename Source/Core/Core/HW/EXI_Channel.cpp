@@ -62,6 +62,7 @@ u32 CEXIChannel::getClockRate()
 	// 011 - 8MHz
 	// 100 - 16MHz
 	// 101 - 32MHz
+	// Returns in Hz
 	return (1 << m_Status.CLK) * 1000000;
 }
 
@@ -83,6 +84,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				m_Status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
 			}
 
+			WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_READ", m_ChannelId);
 			return m_Status.Hex;
 		}),
 		MMIO::ComplexWrite<u32>([this](u32, u32 val) {
@@ -115,6 +117,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 
 			ExpansionInterface::UpdateInterrupts();
+			WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE", m_ChannelId);
 		})
 	);
 
@@ -165,16 +168,18 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 					}
 				}
 
+				// Set TCINT 0
+				m_Status.TCINT = 0;
+
 				// Calculate transfer complete delay time
 				// dataLength is in bytes
 				// We delay the time by how long it would have taken to do this
 				// operation at the clockrate specified
 				u32 delayTime = 8UL * dataLength * SystemTimers::GetTicksPerSecond() / getClockRate();
 
-				// Schedule transfer complete for the future
+				// Schedule transfer complete using delay time
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
-				CoreTiming::ForceExceptionCheck(delayTime + 1);
-				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
+				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL_WRITE clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
 						dataLength, delayTime);
 			}
 		})

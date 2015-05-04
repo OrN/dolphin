@@ -241,6 +241,7 @@ void CEXIMemoryCard::CmdDone()
 
 	m_bInterruptSet = 1;
 	ExpansionInterface::UpdateInterrupts();
+	WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_CMDDONE", card_index);
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
@@ -269,6 +270,7 @@ void CEXIMemoryCard::SetCS(int cs)
 				//???
 
 				CmdDoneLater(5000);
+				WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_CS_cmdSectorErase", card_index);
 			}
 			break;
 
@@ -279,6 +281,7 @@ void CEXIMemoryCard::SetCS(int cs)
 				// erases the system area (Blocks 0-4)
 				memorycard->ClearAll();
 				status &= ~MC_STATUS_BUSY;
+				WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_CS_cmdChipErase", card_index);
 			}
 			break;
 
@@ -297,6 +300,7 @@ void CEXIMemoryCard::SetCS(int cs)
 				}
 
 				CmdDoneLater(5000);
+				WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_CS_cmdPageProgram", card_index);
 			}
 			break;
 		}
@@ -352,6 +356,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 			byte = 0xFF;
 			m_uPosition = 0;
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdClearStatus", card_index);
 		}
 	}
 	else
@@ -369,6 +374,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				byte = 0x80; // dummy cycle
 			else
 				byte = (u8)(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdNintendoID", card_index);
 			break;
 
 		case cmdReadArray:
@@ -396,11 +402,13 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				if (m_uPosition >= 9)
 					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 			}
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdReadArray", card_index);
 			break;
 
 		case cmdReadStatus:
 			// (unspecified for byte 1)
 			byte = status;
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdReadStatus", card_index);
 			break;
 
 		case cmdReadID:
@@ -408,6 +416,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				byte = (u8)(card_id >> 8);
 			else
 				byte = (u8)((m_uPosition & 1) ? (card_id) : (card_id >> 8));
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdReadID", card_index);
 			break;
 
 		case cmdSectorErase:
@@ -421,6 +430,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				break;
 			}
 			byte = 0xFF;
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdSectorErase", card_index);
 			break;
 
 		case cmdSetInterrupt:
@@ -429,10 +439,12 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				interruptSwitch = byte;
 			}
 			byte = 0xFF;
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdSetInterrupt", card_index);
 			break;
 
 		case cmdChipErase:
 			byte = 0xFF;
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdChipErase", card_index);
 			break;
 
 		case cmdPageProgram:
@@ -456,6 +468,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
 
 			byte = 0xFF;
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdPageProgram", card_index);
 			break;
 
 		default:
@@ -509,6 +522,7 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 		DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x",
 			address / BLOCK_SIZE);
 	}
+	WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_DMARead addr:%u, size:%u", card_index, _uAddr, _uSize);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -522,4 +536,5 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 		DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x",
 			address / BLOCK_SIZE);
 	}
+	WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_DMAWrite addr:%u, size:%u", card_index, _uAddr, _uSize);
 }

@@ -131,6 +131,9 @@ void UpdateInterrupts()
 	for (auto& channel : g_Channels)
 		causeInt |= channel->IsCausingInterrupt();
 
+	if(causeInt)
+		WARN_LOG(EXPANSIONINTERFACE, "EXI_UPDATEINTERRUPT");
+
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
