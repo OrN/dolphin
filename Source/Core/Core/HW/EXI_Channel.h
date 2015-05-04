@@ -80,6 +80,8 @@ private:
 
 	std::unique_ptr<IEXIDevice> m_pDevices[NUM_DEVICES];
 
+	int et_transfer_complete;
+
 	// Since channels operate a bit differently from each other
 	u32 m_ChannelId;
 
@@ -91,9 +93,16 @@ public:
 	CEXIChannel(u32 ChannelId);
 	~CEXIChannel();
 
+	// Get the exi channel's current clockrate
+	u32 getClockRate();
+
 	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-	void SendTransferComplete();
+	// Transfer complete interrupt event callback
+	static void TransferCompleteCallback(u64 userdata, int cyclesLate);
+
+	// Transfer complete interrupt
+	void TransferComplete();
 
 	void AddDevice(const TEXIDevices device_type, const int device_num);
 	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged = true);
