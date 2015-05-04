@@ -162,7 +162,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// dataLength is in bytes
 				// We delay the time by how long it would have taken to do this
 				// operation at the clockrate specified
-				u64 delayTime = getClockRate() * dataLength * 8UL / SystemTimers::GetTicksPerSecond();
+				u32 delayTime = getClockRate() * dataLength * 8UL / SystemTimers::GetTicksPerSecond();
 				// Schedule transfer complete for the future
 				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
 			}
