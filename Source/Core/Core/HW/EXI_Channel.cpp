@@ -114,8 +114,6 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			// Only do CS if status has changed
 			if(m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
 			{
-				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE(SetCS) csold:%u, csnew:%u", m_ChannelId, m_Status.CHIP_SELECT, newStatus.CHIP_SELECT);
-
 				// Deselect old device
 				IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
 				if(pDevice != nullptr)
@@ -127,6 +125,8 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				pDevice = GetDevice(m_Status.CHIP_SELECT);
 				if(pDevice != nullptr)
 					pDevice->SetCS(1);
+
+				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE(SetCS) csold:%u, csnew:%u", m_ChannelId, m_Status.CHIP_SELECT, newStatus.CHIP_SELECT);
 			}
 
 			ExpansionInterface::UpdateInterrupts();
