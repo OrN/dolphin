@@ -114,6 +114,8 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			// Only do CS if status has changed
 			if(m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
 			{
+				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE(SetCS) csold:%u, csnew:%u", m_ChannelId, m_Status.CHIP_SELECT, newStatus.CHIP_SELECT);
+
 				// Deselect old device
 				IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
 				if(pDevice != nullptr)
@@ -125,8 +127,6 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				pDevice = GetDevice(m_Status.CHIP_SELECT);
 				if(pDevice != nullptr)
 					pDevice->SetCS(1);
-
-				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_EXISTATUS_WRITE(SetCS) csold:%u, csnew:%u", m_ChannelId, m_Status.CHIP_SELECT, newStatus.CHIP_SELECT);
 			}
 
 			ExpansionInterface::UpdateInterrupts();
@@ -153,7 +153,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				if (pDevice == nullptr)
 					return;
 
-				u32 dataLength = 0;
+				u64 dataLength = 0UL;
 
 				if (m_Control.DMA == 0)
 				{
@@ -185,10 +185,10 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// dataLength is in bytes
 				// We delay the time by how long it would have taken to do this
 				// operation at the clockrate specified
-				u32 delayTime = 8UL * dataLength * SystemTimers::GetTicksPerSecond() / getClockRate();
+				u64 delayTime = dataLength * 8UL * SystemTimers::GetTicksPerSecond() / getClockRate();
 
 				// Schedule transfer complete using delay time
-				CoreTiming::ScheduleEvent(delayTime, et_transfer_complete, (u64)m_ChannelId);
+				CoreTiming::ScheduleEvent((u32)delayTime, et_transfer_complete, (u64)m_ChannelId);
 				WARN_LOG(EXPANSIONINTERFACE, "EXICHANNEL(%u)_DMACONTROL_WRITE clock:%uHz, data_length:%uB, delay:%uns", m_ChannelId, getClockRate(),
 						dataLength, delayTime);
 			}

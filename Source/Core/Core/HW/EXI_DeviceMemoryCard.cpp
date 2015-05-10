@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
@@ -77,7 +78,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
 	command = 0;
-	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
+	status = MC_STATUS_BUSY | MC_STATUS_READY;
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
 	//Nintendo Memory Card EXI IDs
@@ -90,7 +91,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
-	card_id = 0xc221; // It's a Nintendo brand memcard
+	card_id = 0xc243;
+
 
 	// The following games have issues with memory cards bigger than 16Mb
 	// Darkened Skye GDQE6S GDQP6S
@@ -112,7 +114,21 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 		SetupRawMemcard(sizeMb);
 	}
 
+	const u32 latency_table[] =
+	{
+		0x00000004,
+		0x00000008,
+		0x00000010,
+		0x00000020,
+		0x00000030,
+		0x00000080,
+		0x00000100,
+		0x00000200
+	};
+
 	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
+	memory_card_latency = latency_table[(_rotl(card_id, 26) & 0x1C) >> 2];
+
 	u8 header[20] = {0};
 	memorycard->Read(0, ArraySize(header), header);
 	SetCardFlashID(header, card_index);
@@ -374,7 +390,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				byte = 0x80; // dummy cycle
 			else
 				byte = (u8)(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
-			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdNintendoID", card_index);
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdNintendoID byte:0x%02x", card_index, byte);
 			break;
 
 		case cmdReadArray:
@@ -399,10 +415,11 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				memorycard->Read(address & (memory_card_size - 1), 1, &byte);
 				// after 9 bytes, we start incrementing the address,
 				// but only the sector offset - the pointer wraps around
-				if (m_uPosition >= 9)
+				if (m_uPosition >= 5 + memory_card_latency)
 					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 			}
-			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdReadArray", card_index);
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdReadArray address:0x%08x, latency:0x%08x, byte:0x%02x", card_index,
+					address, memory_card_latency, byte);
 			break;
 
 		case cmdReadStatus:
@@ -467,8 +484,8 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 			if (m_uPosition >= 5)
 				programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
 
+			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdPageProgram address:0x%08x, byte:0x%02x", card_index, address, byte);
 			byte = 0xFF;
-			WARN_LOG(EXPANSIONINTERFACE, "MEMORYCARD(%u)_TransferByte_cmdPageProgram", card_index);
 			break;
 
 		default:

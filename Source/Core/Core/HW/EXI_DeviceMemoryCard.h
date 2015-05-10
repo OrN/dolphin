@@ -71,6 +71,7 @@ private:
 	unsigned int card_id;
 	unsigned int address;
 	u32 memory_card_size;
+	u32 memory_card_latency;
 	std::unique_ptr<MemoryCardBase> memorycard;
 
 protected:
