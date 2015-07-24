@@ -41,6 +41,11 @@ if(_M_ARM_64)
 	         Arm64Emitter.cpp
 	         ArmCPUDetect.cpp
 	         GenericFPURoundMode.cpp)
+elseif(_M_MIPS_64)
+	set(SRCS ${SRCS}
+	         Mips64Emitter.cpp
+	         GenericCPUDetect.cpp
+	         GenericFPURoundMode.cpp)
 else()
 	if(_M_X86) #X86
 		set(SRCS ${SRCS}

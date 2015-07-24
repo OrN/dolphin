@@ -63,6 +63,10 @@ namespace JitInterface
 			ptr = new JitArm64();
 			break;
 		#endif
+		#if _M_MIPS_64
+		case PowerPC::CORE_JITMIPS64:
+			break;
+		#endif
 		default:
 			PanicAlert("Unrecognizable cpu_core: %d", core);
 			jit = nullptr;

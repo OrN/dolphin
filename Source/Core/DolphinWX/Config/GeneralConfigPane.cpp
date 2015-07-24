@@ -28,6 +28,8 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 		{ 2, _("JITIL Recompiler (slower, experimental)") },
 #elif defined(_M_ARM_64)
 		{ 4, _("Arm64 JIT (experimental)") },
+#elif defined(_M_MIPS_64)
+		{ 5, _("Mips64 JIT (experimental)") },
 #endif
 	};
 
